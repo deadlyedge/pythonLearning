@@ -9,4 +9,4 @@ soup = BeautifulSoup(data, 'html.parser')
 # for link in links:
 #     print(link)
 
-print(soup.body.div.attrs)
+print(soup.text)
