@@ -1,3 +1,5 @@
+#用turtle画一棵漂亮的小树
+
 import turtle
 
 window = turtle.Screen()
