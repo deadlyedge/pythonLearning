@@ -19,15 +19,44 @@ if req.encoding == 'ISO-8859-1':
 
     # encode_content = req.content.decode(encoding, 'replace').encode('utf-8', 'replace')
     global encode_content
-    encode_content = req.content.decode(encoding, 'replace') #如果设置为replace，则会用?取代非法字符；
+    encode_content = req.content.decode(encoding, 'replace')  # 如果设置为replace，则会用?取代非法字符；
 
 
 # html = requests.get('https://www.zhibo8.cc/').text
 # html.encode('utf-8')
 # print(encode_content)
+def sortByTime(listWithTimein2):
+    return listWithTimein2[2]
 
-results = re.findall('<li.*?(NBA,火箭).*?href="(.*?)".*?">(.*?)</a>', encode_content, re.S)
-# print(results)
-# print(type(results))
-for result in results:
-    print(result)
+
+def leagueOfTeam(team):
+    NBAteams = ['勇士','火箭','雄鹿','凯尔特人']
+    if team in NBAteams:
+        league = 'NBA'
+    elif team == '利物浦':
+        league = '英超'
+    elif team == '皇家马德里':
+        league = '西甲'
+    elif team == '国安':
+        league = '中超'
+
+    return league
+
+
+def showTeam(*args):
+    showList = []
+    for team in args:
+        results = re.findall(
+            '<li label="(' + leagueOfTeam(team) + '),.*?(' + team + ').*?data-time="(.*?)".*?">(.*?)</a>',
+            encode_content,
+            re.S)
+        # print(results)
+        # print(type(results))
+        for result in results:
+            showList.append(result)
+    showList.sort(key=sortByTime)
+    for i in showList:
+        print(i)
+
+
+showTeam('国安', '勇士', '利物浦', '皇家马德里', '火箭')
