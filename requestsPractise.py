@@ -29,8 +29,29 @@ import requests
 #     f.close()
 
 # 添加headers以防止被Server拒绝访问
-headers = {
-    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36'
-}
-response = requests.get('https://www.zhihu.com/explore', headers=headers)
-print(response.text)
+# headers = {
+#     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36'
+# }
+# response = requests.get('https://www.zhihu.com/explore', headers=headers)
+# print(response.text)
+
+# 使用Cookies维持会话、模拟登录
+# s=requests.Session()
+# s.get('http://httpbin.org/cookies/set/number/12345654321')
+# response=s.get('http://httpbin.org/cookies')
+# print(response.text)
+
+# 捕获超时等各种读取异常
+from requests.exceptions import ReadTimeout, HTTPError, RequestException, ConnectionError
+
+try:
+    response = requests.get('http://httpbin.org/get', timeout=0.5)
+    print(response.status_code)
+except ReadTimeout:
+    print('Timeout')
+except ConnectionError:
+    print('Connection Error')
+except HTTPError:
+    print('Http error')
+except RequestException:
+    print('Error')
