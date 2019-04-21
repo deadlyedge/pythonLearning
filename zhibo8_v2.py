@@ -8,6 +8,7 @@ result = re.match('^He.*?(\d+).*Demo$', content) #'.*'贪婪匹配；尽量使�
 targetRE = '<li label="(' + leagueOfTeam(team) + '),(.*?),(.*?),(.*?)".*?data-time="(.*?)".*?">(.*?)</a>'
 '''
 
+from flexx import flx
 import re, requests, tkinter
 from tkinter import ttk  # , Frame
 
@@ -51,28 +52,28 @@ def sortByTime(listWithTimein2):
 
 
 def showTeam(*args):
-    app = tkinter.Tk()
-    app.title('zhibo8数据过滤')
-    app.geometry('700x700')
-    # frame = Frame(app)
-    # frame.place(x=0, y=0, width=700, height=700)
-    # scrollBar = tkinter.Scrollbar(frame)
-    # scrollBar.pack(side=tkinter.RIGHT, fill=tkinter.Y)
-    # style = ttk.Style()
-    # style.configure("mystyle.Treeview", highlightthickness=2, bd=1)  # Modify the font of the body
-    # style.configure("mystyle.Treeview.Heading", font=('Calibri', 14, 'bold'))  # Modify the font of the headings
-    # style.layout("mystyle.Treeview", [('mystyle.Treeview.treearea', {'sticky': 'nswe'})])  # Remove the borders
-
-    tree = ttk.Treeview(app, columns=('时间', '赛事', '转播'),
-                        show='headings',
-                        height=700)
-
-    # tree["columns"] = ("比赛", "时间", "转播")
-    tree.column("时间", width=150)  # 表示列,不显示
-    tree.column("赛事", width=300)
-    tree.column("转播", width=250)
-    # tree.tag_configure('even', background = '#E8E8E8')
-    # tree.tag_configure('odd', background = '#DFDFDF')
+    # app = tkinter.Tk()
+    # app.title('zhibo8数据过滤')
+    # app.geometry('700x700')
+    # # frame = Frame(app)
+    # # frame.place(x=0, y=0, width=700, height=700)
+    # # scrollBar = tkinter.Scrollbar(frame)
+    # # scrollBar.pack(side=tkinter.RIGHT, fill=tkinter.Y)
+    # # style = ttk.Style()
+    # # style.configure("mystyle.Treeview", highlightthickness=2, bd=1)  # Modify the font of the body
+    # # style.configure("mystyle.Treeview.Heading", font=('Calibri', 14, 'bold'))  # Modify the font of the headings
+    # # style.layout("mystyle.Treeview", [('mystyle.Treeview.treearea', {'sticky': 'nswe'})])  # Remove the borders
+    #
+    # tree = ttk.Treeview(app, columns=('时间', '赛事', '转播'),
+    #                     show='headings',
+    #                     height=700)
+    #
+    # # tree["columns"] = ("比赛", "时间", "转播")
+    # tree.column("时间", width=150)  # 表示列,不显示
+    # tree.column("赛事", width=300)
+    # tree.column("转播", width=250)
+    # # tree.tag_configure('even', background = '#E8E8E8')
+    # # tree.tag_configure('odd', background = '#DFDFDF')
 
     showList = []
 
@@ -83,13 +84,32 @@ def showTeam(*args):
             if team in result[0] and result not in showList:
                 showList.append(result)
     showList.sort(key=sortByTime)
+    return showList
     # total = len(showList)
-    for i in showList:
-        # print('{0:18}{1:35}{2:20}'.format(i[1], i[0], i[2]))  #本行为终端输出，下面是tk输出
-        tree.insert("", 100, values=(i[1], i[0], i[2]), tags='even')
+    # for i in showList:
+    #     # print('{0:18}{1:35}{2:20}'.format(i[1], i[0], i[2]))  #本行为终端输出，下面是tk输出
+    #     tree.insert("", 100, values=(i[1], i[0], i[2]), tags='even')
+    #
+    # tree.pack()
+    # app.mainloop()
 
-    tree.pack()
-    app.mainloop()
+
+class DrawTable(flx.Widget):
+
+    def init(self):
+        with flx.VBox():
+            with flx.VBox(style='border:1px solid #777;'):
+                flx.Label(text='zhibo8数据采集')
+                for event in self.showlist:
+                    with flx.HFix(flex=1, style='border-bottom:1px solid #ddd; font-size: 14px;'):
+                        self.b1 = flx.Label(flex=1, text=event[1])
+                        self.b2 = flx.Label(flex=1, text=event[0])
+                        self.b3 = flx.Label(flex=1, text=event[2])
 
 
-showTeam('国安', '利物浦', '阿森纳', '热刺', '勇士', '火箭', '皇家马德里')  # 备选球队：
+if __name__ == '__main__':
+    showListReady = showTeam('国安', '利物浦', '阿森纳', '热刺', '勇士', '火箭', '皇家马德里')
+    print(showListReady)
+    target = DrawTable()
+    m = flx.launch(target)
+    flx.run()
