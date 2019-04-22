@@ -1,4 +1,7 @@
-import re, requests, pandas, dfgui
+import re, requests, pandas
+from PyQt5 import QtWidgets
+
+from PandasModel import PandasModel
 
 
 def getHtml(url="https://www.zhibo8.cc/"):
@@ -31,7 +34,29 @@ def showTeam(*args):
     return showListSorted
 
 
+class Widget(QtWidgets.QWidget):
+    def __init__(self, parent=None):
+        QtWidgets.QWidget.__init__(self, parent=None)
+        self.setAutoFillBackground(True)
+        self.setWindowTitle('zhibo8')
+        self.setFixedSize(750, 900)
+        vLayout = QtWidgets.QVBoxLayout(self)
+        hLayout = QtWidgets.QHBoxLayout()
+        vLayout.addLayout(hLayout)
+        self.pandasTv = QtWidgets.QTableView(self)
+        vLayout.addWidget(self.pandasTv)
+        model = PandasModel(showDF)
+        self.pandasTv.setModel(model)
+        header = self.pandasTv.horizontalHeader()
+        header.setSectionResizeMode(QtWidgets.QHeaderView.ResizeToContents)
+
+
 if __name__ == '__main__':
+    import sys
+
     showListReady = showTeam('国安', '利物浦', '阿森纳', '热刺', '勇士', '火箭', '皇家马德里')
     showDF = pandas.DataFrame(showListReady, columns=['time', 'game', 'broadcast'])
-    dfgui.show(showDF)
+    app = QtWidgets.QApplication(sys.argv)
+    w = Widget()
+    w.show()
+    sys.exit(app.exec_())
