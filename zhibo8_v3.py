@@ -37,13 +37,22 @@ def showTeam(*args):
 class Widget(QtWidgets.QWidget):
     def __init__(self, parent=None):
         QtWidgets.QWidget.__init__(self, parent=None)
-        self.setAutoFillBackground(True)
+        # self.setAutoFillBackground(True)
         self.setWindowTitle('zhibo8')
-        self.setFixedSize(750, 900)
+        self.setFixedSize(700, 750)
+        self.setStyleSheet('Color:#ffc66d;'
+                           'Background-color:#2b2b2b;'
+                           'Border:none;'
+                           )
         vLayout = QtWidgets.QVBoxLayout(self)
         hLayout = QtWidgets.QHBoxLayout()
         vLayout.addLayout(hLayout)
         self.pandasTv = QtWidgets.QTableView(self)
+        self.pandasTv.setSelectionBehavior(1)
+        self.pandasTv.setAlternatingRowColors(True)
+        self.pandasTv.setStyleSheet('alternate-background-color:#333;'
+                                    'Border:none;')
+        self.pandasTv.verticalHeader().setVisible(False)
         vLayout.addWidget(self.pandasTv)
         model = PandasModel(showDF)
         self.pandasTv.setModel(model)
