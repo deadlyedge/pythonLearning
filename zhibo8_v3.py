@@ -1,6 +1,6 @@
+import sys
 import re, requests, pandas
 from PyQt5 import QtWidgets
-
 from PandasModel import PandasModel
 
 
@@ -37,12 +37,26 @@ def showTeam(*args):
 class Widget(QtWidgets.QWidget):
     def __init__(self, parent=None):
         QtWidgets.QWidget.__init__(self, parent=None)
-        # self.setAutoFillBackground(True)
         self.setWindowTitle('zhibo8')
-        self.setFixedSize(700, 750)
-        self.setStyleSheet('Color:#ffc66d;'
+        self.setWindowOpacity(.8)
+        self.setFixedSize(685, 500)
+        self.setStyleSheet('QWidget{Color:#ffc66d;'
                            'Background-color:#2b2b2b;'
-                           'Border:none;'
+                           'border: 1px solid #ffc66d; border-radius:4px;}'
+                           'QScrollBar:vertical{border:none;background:#2b2b2b;width:10px;'
+                           'margin:0px;}'
+                           'QScrollBar::handle:vertical {'
+                           'background:#c9a97c; border-radius:3px;}'
+                           'QScrollBar::handle:vertical:hover {'
+                           'background:#ffd499; border-radius:3px;}'
+                           'QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {'
+                           'background: none;}'
+                           'QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {'
+                           'border:none; background: none;}'
+                           'QTableView{alternate-background-color:#444;}'
+                           'QTableView{margin:0px 5px 0px 5px;}'
+                           'QTableView::item:hover{color:#2b2b2b;'
+                           'background-color:#ffc66d;}'
                            )
         vLayout = QtWidgets.QVBoxLayout(self)
         hLayout = QtWidgets.QHBoxLayout()
@@ -50,9 +64,9 @@ class Widget(QtWidgets.QWidget):
         self.pandasTv = QtWidgets.QTableView(self)
         self.pandasTv.setSelectionBehavior(1)
         self.pandasTv.setAlternatingRowColors(True)
-        self.pandasTv.setStyleSheet('alternate-background-color:#333;'
-                                    'Border:none;')
+        self.pandasTv.setShowGrid(False)
         self.pandasTv.verticalHeader().setVisible(False)
+        self.pandasTv.horizontalHeader().setVisible(False)
         vLayout.addWidget(self.pandasTv)
         model = PandasModel(showDF)
         self.pandasTv.setModel(model)
@@ -61,7 +75,6 @@ class Widget(QtWidgets.QWidget):
 
 
 if __name__ == '__main__':
-    import sys
 
     showListReady = showTeam('国安', '利物浦', '阿森纳', '热刺', '勇士', '火箭', '皇家马德里')
     showDF = pandas.DataFrame(showListReady, columns=['time', 'game', 'broadcast'])
