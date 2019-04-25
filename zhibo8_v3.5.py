@@ -23,7 +23,7 @@ def getHtml(url="https://www.zhibo8.cc/"):
 def splitTeamInfo(gameInfoList):
     nonTeam = ['欧联杯', '足球', '篮球', 'NBA', 'CBA', '英超', '西甲', '荷甲', '待定', '中超', '亚冠', '欧冠',
                '中甲', '足协杯']
-    giveup = ['篮球', '足球']
+    giveup = ['篮球', '足球', '其他', 'F1']
     gameInfo = gameInfoList.split(',')
     temp1 = [i for i in gameInfo if i not in nonTeam and i not in giveup]
     temp2 = [i for i in gameInfo if i in nonTeam and i not in giveup]
@@ -32,7 +32,7 @@ def splitTeamInfo(gameInfoList):
 
 
 def showTeam(*args):
-    showList = []
+    showList = showListReady = []
     targetRE = '<li label="(.*?)" id="saishi.*?data-time="(.*?)".*?">(.*?)</a>'
     results = re.findall(targetRE, getHtml(), re.S)
 
@@ -42,17 +42,17 @@ def showTeam(*args):
             if team in resultReform[1] and resultReform not in showList:
                 showList.append(resultReform)
     # showListSorted = sorted(showList, key=lambda s: s[0])
-    # for game in range(len(showList)):  # 整理成分组的list，[第一组时间][第二组比赛信息][第三组转播信息]
-    #     showListReady[game] = [showList[game][0].split()] + [splitTeamInfo(showList[game][1])] + \
-    #                           [showList[game][2].split()]
-    return showList
+    for game in range(len(showList)):  # 整理成分组的list，[第一组时间][第二组比赛信息][第三组转播信息]
+        showListReady[game] = [showList[game][0].split()] + [splitTeamInfo(showList[game][1])] + \
+                              [showList[game][2].split()]
+    return showListReady
 
 
 class Widget(QtWidgets.QWidget):
     def __init__(self, parent=None):
         QtWidgets.QWidget.__init__(self, parent=None)
         self.setWindowTitle('zhibo8')
-        self.setWindowOpacity(.8)
+        self.setWindowOpacity(.9)
         self.setFixedSize(685, 500)
         self.setStyleSheet('QWidget{Color:#ffc66d;'
                            'Background-color:#2b2b2b;'
@@ -90,7 +90,7 @@ class Widget(QtWidgets.QWidget):
 
 
 if __name__ == '__main__':
-    showListReady = showTeam('国安', '利物浦', '阿森纳', '热刺', '勇士', '火箭', '皇家马德里')
+    showListReady = showTeam('国安', '利物浦', '阿森纳', '热刺', '勇士', 'F1', '皇家马德里')
     showDF = pandas.DataFrame(showListReady, columns=['time', 'game', 'broadcast'])
     app = QtWidgets.QApplication(sys.argv)
     w = Widget()
