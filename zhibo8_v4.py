@@ -1,8 +1,8 @@
-import sys
-import re, requests, pandas
-from PyQt5 import QtWidgets, QtGui, QtCore
-from PandasModel import PandasModel
+import re, requests, eel
+from jinja2 import Environment, PackageLoader
 
+env = Environment(loader=PackageLoader(__name__, 'web'))
+template = env.get_template('main_template.html')
 
 def getHtml(url="https://www.zhibo8.cc/"):
     req = requests.get(url)
@@ -20,75 +20,34 @@ def getHtml(url="https://www.zhibo8.cc/"):
         return req.text
 
 
+def splitTeamInfo(gameInfoList):
+    nonTeam = ['欧联杯', '足球', '篮球', 'NBA', 'CBA', '英超', '西甲', '荷甲', '待定', '中超', '亚冠', '欧冠',
+               '中甲', '足协杯']
+    giveup = ['篮球', '足球']
+    gameInfo = gameInfoList.split(',')
+    temp1 = [i for i in gameInfo if i not in nonTeam and i not in giveup]
+    temp2 = [i for i in gameInfo if i in nonTeam and i not in giveup]
+    gameInfoListSorted = temp1 + temp2
+    return gameInfoListSorted
+
+
 def showTeam(*args):
-    showList = []
+    showList = showListReady = []
+    targetRE = '<li label="(.*?)" id="saishi.*?data-time="(.*?)".*?">(.*?)</a>'
+    results = re.findall(targetRE, getHtml(), re.S)
 
-    for team in args:
-        targetRE = '<li label="(.*?)" id="saishi.*?data-time="(.*?)".*?">(.*?)</a>'
-        results = re.findall(targetRE, getHtml(), re.S)
-        for result in results:
-            if team in result[0] and result not in showList:
-                resultReform = [result[1], result[0], result[2]]
+    for result in results:
+        resultReform = [result[1], result[0], result[2]]
+        for team in args:
+            if team in resultReform[1] and resultReform not in showList:
                 showList.append(resultReform)
-    showListSorted = sorted(showList, key=lambda s: s[0])
-    return showListSorted
-
-
-class Widget(object):
-    def setupGUI(self, Form):
-        Form.setObjectName("zhibo8")
-        Form.resize(685, 500)
-        # self.setWindowTitle('zhibo8')
-        # self.setWindowOpacity(.8)
-        # self.setFixedSize(685, 500)
-        # self.setStyleSheet('QWidget{Color:#ffc66d;'
-        #                    'Background-color:#2b2b2b;'
-        #                    'border: 1px solid #ffc66d; border-radius:4px;}'
-        #                    'QScrollBar:vertical{border:none;background:#2b2b2b;width:10px;'
-        #                    'margin:0px;}'
-        #                    'QScrollBar::handle:vertical {'
-        #                    'background:#c9a97c; border-radius:3px;}'
-        #                    'QScrollBar::handle:vertical:hover {'
-        #                    'background:#ffd499; border-radius:3px;}'
-        #                    'QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {'
-        #                    'background: none;}'
-        #                    'QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {'
-        #                    'border:none; background: none;}'
-        #                    'QTableWidget{alternate-background-color:#444;}'
-        #                    'QTableWidget{margin:0px 5px 0px 5px;}'
-        #                    'QTableWidget::item:hover{color:#2b2b2b;'
-        #                    'background-color:#ffc66d;}'
-        #                    )
-        # vLayout = QtWidgets.QVBoxLayout(self)
-        # hLayout = QtWidgets.QHBoxLayout()
-        # vLayout.addLayout(hLayout)
-        myresult = [(449, u'text1', u'checkbox'), (454, u'text2', u'textbox'), (455, u'text3', u'textbox')]
-        self.tableWidget = QtWidgets.QTableWidget(Form)
-        self.tableWidget.setSelectionBehavior(1)
-        self.tableWidget.setAlternatingRowColors(True)
-        self.tableWidget.setShowGrid(False)
-        self.tableWidget.verticalHeader().setVisible(False)
-        self.tableWidget.horizontalHeader().setVisible(False)
-        self.tableWidget.setColumnCount(3)
-        # vLayout.addWidget(self.pandasTv)
-        for row, result in enumerate(myresult):
-            self.tableWidget.insertRow(self.tableWidget.rowCount())
-            for column, value in enumerate(result):
-                item = QtWidgets.QTableWidgetItem(str(value))
-                print(value)
-                self.tableWidget.setItem(row, column, item)
-        # model = PandasModel(showDF)
-        # self.pandasTv.setModel(model)
-        header = self.tableWidget.horizontalHeader()
-        header.setSectionResizeMode(QtWidgets.QHeaderView.ResizeToContents)
+    # showListSorted = sorted(showList, key=lambda s: s[0])
+    for game in range(len(showList)):  # 整理成分组的list，[第一组时间][第二组比赛信息][第三组转播信息]
+        showListReady[game] = [showList[game][0].split()] + [splitTeamInfo(showList[game][1])] + \
+                              [showList[game][2].split()]
+    return showListReady
 
 
 if __name__ == '__main__':
-
     showListReady = showTeam('国安', '利物浦', '阿森纳', '热刺', '勇士', '火箭', '皇家马德里')
-    showDF = pandas.DataFrame(showListReady, columns=['time', 'game', 'broadcast'])
-    app = QtWidgets.QApplication(sys.argv)
-    MainWindow = QtWidgets.QMainWindow()
-    ui = Widget()
-    MainWindow.show()
-    sys.exit(app.exec_())
+    print(template.render(showListReady))

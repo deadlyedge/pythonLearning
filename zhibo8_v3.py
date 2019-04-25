@@ -20,18 +20,32 @@ def getHtml(url="https://www.zhibo8.cc/"):
         return req.text
 
 
-def showTeam(*args):
-    showList = []
+def splitTeamInfo(gameInfoList):
+    nonTeam = ['欧联杯', '足球', '篮球', 'NBA', 'CBA', '英超', '西甲', '荷甲', '待定', '中超', '亚冠', '欧冠',
+               '中甲', '足协杯']
+    giveup = ['篮球', '足球']
+    gameInfo = gameInfoList.split(',')
+    temp1 = [i for i in gameInfo if i not in nonTeam and i not in giveup]
+    temp2 = [i for i in gameInfo if i in nonTeam and i not in giveup]
+    gameInfoListSorted = temp1 + temp2
+    return gameInfoListSorted
 
-    for team in args:
-        targetRE = '<li label="(.*?)" id="saishi.*?data-time="(.*?)".*?">(.*?)</a>'
-        results = re.findall(targetRE, getHtml(), re.S)
-        for result in results:
-            if team in result[0] and result not in showList:
-                resultReform = [result[1], result[0], result[2]]
+
+def showTeam(*args):
+    showList = showListReady = []
+    targetRE = '<li label="(.*?)" id="saishi.*?data-time="(.*?)".*?">(.*?)</a>'
+    results = re.findall(targetRE, getHtml(), re.S)
+
+    for result in results:
+        resultReform = [result[1], result[0], result[2]]
+        for team in args:
+            if team in resultReform[1] and resultReform not in showList:
                 showList.append(resultReform)
-    showListSorted = sorted(showList, key=lambda s: s[0])
-    return showListSorted
+    # showListSorted = sorted(showList, key=lambda s: s[0])
+    # for game in range(len(showList)):  # 整理成分组的list，[第一组时间][第二组比赛信息][第三组转播信息]
+    #     showListReady[game] = [showList[game][0].split()] + [splitTeamInfo(showList[game][1])] + \
+    #                           [showList[game][2].split()]
+    return showList
 
 
 class Widget(QtWidgets.QWidget):
@@ -63,6 +77,7 @@ class Widget(QtWidgets.QWidget):
         vLayout.addLayout(hLayout)
         self.pandasTv = QtWidgets.QTableView(self)
         self.pandasTv.setSelectionBehavior(1)
+        self.pandasTv.setHorizontalScrollBarPolicy(1)
         self.pandasTv.setAlternatingRowColors(True)
         self.pandasTv.setShowGrid(False)
         self.pandasTv.verticalHeader().setVisible(False)
@@ -75,7 +90,6 @@ class Widget(QtWidgets.QWidget):
 
 
 if __name__ == '__main__':
-
     showListReady = showTeam('国安', '利物浦', '阿森纳', '热刺', '勇士', '火箭', '皇家马德里')
     showDF = pandas.DataFrame(showListReady, columns=['time', 'game', 'broadcast'])
     app = QtWidgets.QApplication(sys.argv)
