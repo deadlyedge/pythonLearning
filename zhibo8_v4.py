@@ -1,8 +1,13 @@
-import re, requests, eel
-from jinja2 import Environment, PackageLoader
+import os
 
-env = Environment(loader=PackageLoader(__name__, 'web'))
+root = os.path.dirname(os.path.relpath(__file__))
+from jinja2 import Environment, FileSystemLoader
+import re, requests, time, eel
+
+templates_dir = os.path.join(root, "web")
+env = Environment(loader=FileSystemLoader(templates_dir))
 template = env.get_template('main_template.html')
+
 
 def getHtml(url="https://www.zhibo8.cc/"):
     req = requests.get(url)
@@ -20,14 +25,24 @@ def getHtml(url="https://www.zhibo8.cc/"):
         return req.text
 
 
+def reform(result):  # 整理比赛数据格式
+    sort = [result[1], result[0], result[2]]
+    timeLeft = time.mktime(time.strptime(sort[0], '%Y-%m-%d %H:%M')) - time.time()
+    if timeLeft < 82800 and sort[0][-5:] >= "00:00" and sort[0][-5:] <= "05:00":  # 判断时间是否需要替换为汉字
+        sort[0] = "今夜 " + sort[0][-5:]
+    elif timeLeft < 169200:  # ‘明晚’方法待考证
+        sort[0] = "明天 " + sort[0][-5:]
+    return sort
+
+
 def splitTeamInfo(gameInfoList):
     nonTeam = ['欧联杯', '足球', '篮球', 'NBA', 'CBA', '英超', '西甲', '荷甲', '待定', '中超', '亚冠', '欧冠',
                '中甲', '足协杯']
-    giveup = ['篮球', '足球']
+    giveup = ['篮球', '足球', 'F1', '其他']
     gameInfo = gameInfoList.split(',')
     temp1 = [i for i in gameInfo if i not in nonTeam and i not in giveup]
     temp2 = [i for i in gameInfo if i in nonTeam and i not in giveup]
-    gameInfoListSorted = temp1 + temp2
+    gameInfoListSorted = [temp1] + [temp2]
     return gameInfoListSorted
 
 
@@ -37,11 +52,10 @@ def showTeam(*args):
     results = re.findall(targetRE, getHtml(), re.S)
 
     for result in results:
-        resultReform = [result[1], result[0], result[2]]
+        resultReform = reform(result)
         for team in args:
             if team in resultReform[1] and resultReform not in showList:
                 showList.append(resultReform)
-    # showListSorted = sorted(showList, key=lambda s: s[0])
     for game in range(len(showList)):  # 整理成分组的list，[第一组时间][第二组比赛信息][第三组转播信息]
         showListReady[game] = [showList[game][0].split()] + [splitTeamInfo(showList[game][1])] + \
                               [showList[game][2].split()]
@@ -49,5 +63,11 @@ def showTeam(*args):
 
 
 if __name__ == '__main__':
-    showListReady = showTeam('国安', '利物浦', '阿森纳', '热刺', '勇士', '火箭', '皇家马德里')
-    print(template.render(showListReady))
+    showListReady = showTeam('国安', '利物浦', '阿森纳', '热刺', '勇士', 'F1', '皇家马德里')
+    listfix = [[item for subsublist in sublist for item in subsublist] for sublist in showListReady]
+    filename = os.path.join(root, 'web', 'index.html')
+    with open(filename, 'w', encoding='UTF-8') as fh:
+        output = template.render(showListReady=showListReady)
+        fh.write(output)
+    eel.init('web')
+    eel.start('index.html', size=(760, 700))
